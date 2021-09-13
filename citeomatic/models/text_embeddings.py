@@ -111,16 +111,17 @@ class TextEmbedding(object):
 
     def embedding_constructor(self, prefix):
         _input = Input(shape=(None,), dtype='int32', name='%s-txt' % prefix)
+        # use_magdir表示是否使用缩放magnitude，默认为True
         if self.use_magdir:
-            dir_embedding = self.embed_direction(_input)
+            dir_embedding = self.embed_direction(_input)  # 调用embed_direction，形成一个input + embed的层
             direction = L2Normalize.invoke(dir_embedding,
-                                           name='%s-dir-norm' % prefix)
-            magnitude = self.embed_magnitude(_input)
+                                           name='%s-dir-norm' % prefix)  # 加入l2normalize 层， 并命名
+            magnitude = self.embed_magnitude(_input)    # 调用embed_magnitude，形成一个input + embed的层
             _embedding = ScalarMul.invoke([direction, magnitude],
-                                          name='%s-embed' % prefix)
+                                          name='%s-embed' % prefix) # 将direction与magnitude通过缩放乘法（使用基本积）lambda连接
         else:
             _embedding = self.embed_direction(_input)
-        _embedding = self.dropout(_embedding)
+        _embedding = self.dropout(_embedding)  #  使用SpatialDropout1D以维度为单位按照比例清零
         return _input, _embedding
 
 
@@ -139,12 +140,12 @@ class TextEmbeddingSum(TextEmbedding):
         :return: A model that takes a sequence of words as inputs and outputs the normed sum of
         word embeddings that occur in the document.
         """
-        _input, _embedding = self.embedding_constructor(prefix)
-        summed = Sum.invoke(_embedding, name='%s-sum-title' % prefix)
+        _input, _embedding = self.embedding_constructor(prefix)  # 此处为构建模型图，_input为输入， _embedding为输出
+        summed = Sum.invoke(_embedding, name='%s-sum-title' % prefix) # 将每个词向量相加取和，结果维度为（文档数，维度）
         if final_l2_norm:
             normed_sum = L2Normalize.invoke(
                 summed, name='%s-l2_normed_sum' % prefix
-            )
+            )  # 将最终的向量二阶归一化
             outputs_list = [normed_sum]
         else:
             outputs_list = [summed]

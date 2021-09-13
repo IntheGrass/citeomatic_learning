@@ -13,11 +13,12 @@ import keras.backend as K
 create_model = import_from("citeomatic.models.citation_ranker", "create_model")
 embedder_create_model = import_from("citeomatic.models.paper_embedder", "create_model")
 
+
 class TestModelBuild(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        build_test_corpus('/tmp/foo.json', '/tmp/foo.sqlite')
-        corpus = Corpus.load('/tmp/foo.sqlite')
+        build_test_corpus('./tmp/foo.json', './tmp/foo.sqlite')
+        corpus = Corpus.load('./tmp/foo.sqlite')
 
         options = ModelOptions(**{})
 
@@ -167,7 +168,7 @@ class TestModelBuild(unittest.TestCase):
         except Exception:
             assert False
 
-    def _test_train(self, models: dict):
+    def  _test_train(self, models: dict):
         model = models['citeomatic']
         model.compile(optimizer='nadam', loss=triplet_loss)
         dg = DataGenerator(self.corpus, self.featurizer, candidate_selector=TestCandidateSelector())
@@ -181,3 +182,10 @@ class TestModelBuild(unittest.TestCase):
 class TestCandidateSelector(object):
     def confidence(self, doc_id, candidate_ids):
         return np.ones(len(candidate_ids))
+
+
+if __name__ == '__main__':
+    suite = unittest.TestSuite()
+    suite.addTest(TestModelBuild('test_build_paper_embedder_sum'))
+    runner = unittest.TextTestRunner(verbosity=2)
+    runner.run(suite)

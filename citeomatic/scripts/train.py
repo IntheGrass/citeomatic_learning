@@ -204,6 +204,7 @@ class TrainCiteomatic(App, ModelOptions):
         # Needed especially for hyperopt runs
         K.clear_session()
 
+        # eval_params为args传递参数
         model_kw = {name: getattr(self, name) for name in ModelOptions.class_traits().keys()}
         model_kw.update(eval_params)
         model_options = ModelOptions(**model_kw)
@@ -219,7 +220,7 @@ class TrainCiteomatic(App, ModelOptions):
 
         if model_options.train_for_test_set:
             logging.info("\n\n============== TRAINING FOR TEST SET =============\n\n")
-
+        # Todo train-1 训练主函数
         training_outputs = end_to_end_training(
             model_options,
             self.dataset_type,

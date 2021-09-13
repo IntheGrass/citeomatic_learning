@@ -97,7 +97,6 @@ class EmbeddingModel(object):
     Wrap a Siamese citeomatic model and expose an interface
     to extract the embeddings for individual documents.
     """
-
     def __init__(self, featurizer, model):
         import keras.backend as K
         self._model = model

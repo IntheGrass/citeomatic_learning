@@ -64,11 +64,12 @@ class Evaluate(App):
 
     def main(self, args):
         dp = DatasetPaths()
+        # 加载语料库
         if self.dataset_type == 'oc':
             corpus = Corpus.load_pkl(dp.get_pkl_path(self.dataset_type))
         else:
             corpus = Corpus.load(dp.get_db_path(self.dataset_type))
-
+        # 加载ranker
         if self.ranker_type == 'none':
             citation_ranker = NoneRanker()
         elif self.ranker_type == 'neural':

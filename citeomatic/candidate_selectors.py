@@ -8,7 +8,7 @@ from whoosh.qparser import MultifieldParser
 
 from citeomatic.common import schema, FieldNames
 from citeomatic.corpus import Corpus
-from citeomatic.neighbors import ANN
+from citeomatic.neighbors import ANN  # Annoy相似最近邻搜索
 from citeomatic.neighbors import EmbeddingModel
 import numpy as np
 

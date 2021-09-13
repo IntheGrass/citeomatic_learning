@@ -2,7 +2,7 @@ import collections
 import logging
 import mmh3
 import re
-import resource
+# import resource
 
 import numpy as np
 import pandas as pd
@@ -119,10 +119,10 @@ class Featurizer(object):
 
     def fit(self, corpus, max_df_frac=0.90, min_df_frac=0.000025, is_featurizer_for_test=False):
 
-        logging.info(
-            'Usage at beginning of featurizer fit: %s',
-            resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1e6
-        )
+        # logging.info(
+        #     'Usage at beginning of featurizer fit: %s',
+        #     resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1e6
+        # )
 
         if is_featurizer_for_test:
             paper_ids_for_training = corpus.train_ids + corpus.valid_ids
@@ -131,9 +131,11 @@ class Featurizer(object):
 
         # Fitting authors and venues
         logging.info('Fitting authors and venues')
+        # 计数器
         author_counts = collections.Counter()
         venue_counts = collections.Counter()
         keyphrase_counts = collections.Counter()
+        # 过滤掉低于出现次数指定值的author, venue, keyphrase
         for doc_id in tqdm.tqdm(paper_ids_for_training):
             doc = corpus[doc_id]
             author_counts.update(doc.authors)
@@ -157,7 +159,6 @@ class Featurizer(object):
             if count >= self.min_keyphrase_papers:
                 self.keyphrase_to_index[keyphrase] = c
                 c += 1
-
         # Step 1: filter out some words and make a vocab
         if self.use_pretrained:
             vocab_file = dp.vocab_for_corpus('shared')
@@ -171,10 +172,11 @@ class Featurizer(object):
             ]
 
             logging.info('Fitting vectorizer...')
+            # 计数词袋模型 CountVectorizer核心是会生成（doc_num, word_num）的计数矩阵
             if self.max_features is not None:
                 count_vectorizer = CountVectorizer(
-                    max_df=max_df_frac,
-                    max_features=self.max_features,
+                    max_df=max_df_frac, # 最大的文档频率，超过会被忽略
+                    max_features=self.max_features,  # 对词频进行排序，取最高的max_features个
                     stop_words=self.STOPWORDS
                 )
             else:
@@ -184,28 +186,30 @@ class Featurizer(object):
                     stop_words=self.STOPWORDS
                 )
             count_vectorizer.fit(tqdm.tqdm(all_docs_text))
-            vocab = count_vectorizer.vocabulary_
+            vocab = count_vectorizer.vocabulary_  # dict{key: index}的结构
 
-        logging.info(
-            'Usage after word count: %s',
-            resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1e6
-        )
+        # 输出当前进程的所有线程的最大寄存集size
+        # logging.info(
+        #     'Usage after word count: %s',
+        #     resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1e6
+        # )
 
         # Step 4: Initialize mapper from word to index
         self.word_indexer = FeatureIndexer(
             vocab=vocab,
             use_pretrained=self.use_pretrained
         )
+        # n_features = 词数量+1，因为FeatureIndexer中有offset=1，第0个词的index为1,以此类推
         self.n_features = 1 + len(self.word_indexer.word_to_index)
 
-        logging.info(
-            'Usage after word_indexer: %s',
-            resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1e6
-        )
-        logging.info(
-            'Usage at end of fit: %s',
-            resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1e6
-        )
+        # logging.info(
+        #     'Usage after word_indexer: %s',
+        #     resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1e6
+        # )
+        # logging.info(
+        #     'Usage at end of fit: %s',
+        #     resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1e6
+        # )
         logging.info('Total words %d ' % len(self.word_indexer.word_to_index))
         logging.info('Total authors %d ' % self.n_authors)
         logging.info('Total venues %d ' % self.n_venues)

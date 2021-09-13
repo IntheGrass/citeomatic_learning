@@ -140,11 +140,11 @@ def build_test_corpus(source_file, target_file):
 
 
 def test_corpus_conversion():
-    build_test_corpus('/tmp/foo.json', '/tmp/foo.sqlite')
+    build_test_corpus('./tmp/foo.json', './tmp/foo.sqlite')
 
 
 def test_corpus_iterator():
-    corpus = Corpus.load('/tmp/foo.sqlite')
+    corpus = Corpus.load('./tmp/foo.sqlite')
     iter_ids = []
     for doc in corpus:
         iter_ids.append(doc.id)
@@ -153,8 +153,8 @@ def test_corpus_iterator():
 
 
 def test_featurizer_and_data_gen():
-    build_test_corpus('/tmp/foo.json', '/tmp/foo.sqlite')
-    corpus = Corpus.load('/tmp/foo.sqlite')
+    build_test_corpus('./tmp/foo.json', './tmp/foo.sqlite')
+    corpus = Corpus.load('./tmp/foo.sqlite')
     featurizer = features.Featurizer()
     featurizer.fit(corpus, max_df_frac=1.0)
 
@@ -213,8 +213,8 @@ def test_featurizer_and_data_gen():
 
 
 def test_data_isolation():
-    build_test_corpus('/tmp/foo.json', '/tmp/foo.sqlite')
-    corpus = Corpus.load('/tmp/foo.sqlite')
+    build_test_corpus('./tmp/foo.json', './tmp/foo.sqlite')
+    corpus = Corpus.load('./tmp/foo.sqlite')
 
     assert len(set(corpus.train_ids).intersection(set(corpus.valid_ids))) == 0
     assert len(set(corpus.train_ids).intersection(set(corpus.test_ids))) == 0

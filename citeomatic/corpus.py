@@ -111,8 +111,12 @@ class Corpus(object):
         return all_ids
 
     def __init__(self, data_path, train_frac):
+        # 修改数据库路径
+        # self._conn = sqlite3.connect(
+        #     'file://%s?mode=ro' % data_path, check_same_thread=False, uri=True
+        # )
         self._conn = sqlite3.connect(
-            'file://%s?mode=ro' % data_path, check_same_thread=False, uri=True
+            data_path, check_same_thread=False, uri=True
         )
         self.train_frac = train_frac
 
@@ -123,7 +127,7 @@ class Corpus(object):
         else:
             self.corpus_type = 'oc'
 
-        if self.corpus_type is 'oc':
+        if self.corpus_type == 'oc':
             all_ids = self._fetch_paper_ids()
             n = len(all_ids)
             n_train = int(self.train_frac * n)

@@ -7,11 +7,13 @@ from citeomatic import file_util
 from citeomatic.schema_pb2 import Document as ProtoDoc
 import spacy
 from whoosh.fields import *
+# from schema import Schema
 
 PAPER_EMBEDDING_MODEL = 'paper_embedder'
 CITATION_RANKER_MODEL = 'citation_ranker'
 
-nlp = spacy.load("en")
+# nlp = spacy.load("en")
+nlp = spacy.load("en_core_web_sm")
 RESTRICTED_POS_TAGS = {'PUNCT', 'SYM', 'DET', 'NUM', 'SPACE', 'PART'}
 
 schema = Schema(title=TEXT,

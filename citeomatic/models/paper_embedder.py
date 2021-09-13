@@ -16,10 +16,11 @@ def create_model(options: ModelOptions, pretrained_embeddings=None):
 
     scalar_sum_models = {}
     for field in FIELDS:
-        scalar_sum_models[field] = ScalarMultiply(name='scalar-mult-' + field)
+        scalar_sum_models[field] = ScalarMultiply(name='scalar-mult-' + field)  # 一个缩放层，只有一个缩放权值参数w
 
 
     # same embedders for query and for candidate
+    # todo train-4 获得主题嵌入模型和摘要嵌入模型，取sum时两者相同
     embedder_title, embedder_abstract = make_embedder(options, pretrained_embeddings)
     embedders = {'title': embedder_title, 'abstract': embedder_abstract}
 
@@ -35,9 +36,9 @@ def create_model(options: ModelOptions, pretrained_embeddings=None):
             )
             embedding_models[prefix] = embedding_model
             normed_sum = embedding_models[prefix].outputs[0]
-            weighted_normed_sums.append(scalar_sum_models[field](normed_sum))
+            weighted_normed_sums.append(scalar_sum_models[field](normed_sum))  # 对原始的title向量和论文abstract向量缩放
 
-        weighted_sum = Add()(weighted_normed_sums)
+        weighted_sum = Add()(weighted_normed_sums)  # 将归一化的论文title向量和论文abstract向量相加，得到最终的paper嵌入
         normed_weighted_sum_of_normed_sums[source] = L2Normalize.invoke(
             weighted_sum, name='%s-l2_normed_sum' % source
         )
@@ -48,7 +49,7 @@ def create_model(options: ModelOptions, pretrained_embeddings=None):
         normed_weighted_sum_of_normed_sums['candidate'],
         options.dense_dim,
         normalize=False
-    )
+    )  # 计算两个向量的cos相似度
 
     citeomatic_inputs = []
     for source in SOURCE_NAMES:
@@ -58,6 +59,7 @@ def create_model(options: ModelOptions, pretrained_embeddings=None):
 
     citeomatic_model = Model(inputs=citeomatic_inputs, outputs=text_output)
 
+    # FIXME 此处可能写错了，len(SOURCE_NAMES)应该为len(FIELDS)，但由于当前两个值相同，所以结果相同
     embedding_model = Model(
         inputs=citeomatic_inputs[0:len(SOURCE_NAMES)],
         outputs=normed_weighted_sum_of_normed_sums['query']

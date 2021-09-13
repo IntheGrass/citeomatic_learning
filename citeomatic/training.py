@@ -1,7 +1,7 @@
 import collections
 import logging
 import os
-import resource
+# import resource
 
 import h5py
 import keras
@@ -61,10 +61,11 @@ class ValidationCallback(keras.callbacks.Callback):
 
 class MemoryUsageCallback(keras.callbacks.Callback):
     def on_epoch_end(self, epoch, logs={}):
-        logging.info(
-            '\nCurrent memory usage: %s',
-            resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1e6
-        )
+        # logging.info(
+        #     '\nCurrent memory usage: %s',
+        #     resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1e6
+        # )
+        pass
 
 
 class UpdateANN(keras.callbacks.Callback):
@@ -141,11 +142,12 @@ def train_text_model(
             pretrained_embeddings = f['embedding'][...]
     else:
         pretrained_embeddings = None
-
+    # 载入模型
     create_model = import_from(
         'citeomatic.models.%s' % model_options.model_name,
         'create_model'
     )
+    # todo train-3 创建模型
     models = create_model(model_options, pretrained_embeddings)
     model, embedding_model = models['citeomatic'], models['embedding']
 
@@ -292,17 +294,19 @@ def end_to_end_training(model_options: ModelOptions, dataset_type, models_dir, m
             min_keyphrase_papers=model_options.min_keyphrase_papers
         )
         featurizer.fit(corpus, is_featurizer_for_test=model_options.train_for_test_set)
+        # is_featurizer_for_test表示是否加入验证的论文id集
         file_util.write_pickle(featurizer_file, featurizer)
 
     # update model options after featurization
     model_options.n_authors = featurizer.n_authors
     model_options.n_venues = featurizer.n_venues
     model_options.n_keyphrases = featurizer.n_keyphrases
-    model_options.n_features = featurizer.n_features
+    model_options.n_features = featurizer.n_features  # 指词的数量特征 + 1
     if model_options.use_pretrained:
         model_options.dense_dim = model_options.dense_dim_pretrained
 
     # step 4: train the model
+    # todo train-2 训练citeomatic_model和 embedding_model
     citeomatic_model, embedding_model = train_text_model(
         corpus,
         featurizer,
